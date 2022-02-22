@@ -30,7 +30,7 @@ SWEP.Primary.DefaultClip        =   100
 SWEP.Primary.Ammo               =   "357"
 SWEP.Primary.Automatic          =   true
 SWEP.Primary.Recoil             =   0
-SWEP.Primary.Damage             =   -100
+SWEP.Primary.Damage             =   -20         -- negative damage => heal | edit this value e.g. -100 ist 100 heal per shot
 SWEP.Primary.NumShots           =   1
 SWEP.Primary.Spread             =   0
 SWEP.Primary.Cone               =   0

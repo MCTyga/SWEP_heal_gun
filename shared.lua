@@ -30,7 +30,8 @@ SWEP.Primary.DefaultClip        =   100
 SWEP.Primary.Ammo               =   "357"
 SWEP.Primary.Automatic          =   true
 SWEP.Primary.Recoil             =   0
-SWEP.HealAmount = 20                            -- Maximum heal amount per use´
+SWEP.HealAmount 		= 20                            -- Maximum heal amount per use´
+SWEP.MaxHealth 			= 200				-- this value is tha maximum health that can be gained by using the SWEP
 SWEP.Primary.NumShots           =   1
 SWEP.Primary.Spread             =   0
 SWEP.Primary.Cone               =   0
@@ -76,9 +77,9 @@ function SWEP:PrimaryAttack()
 	local ent = tr.Entity
 
 	local need = self.HealAmount
-	if ( IsValid( ent ) ) then need = math.min( ent:GetMaxHealth() - ent:Health(), self.HealAmount ) end
+	if ( IsValid( ent ) ) then need = math.min( SWEP.MaxHealth - ent:Health(), self.HealAmount ) end
 
-	if ( IsValid( ent ) && self:Clip1() >= need && ( ent:IsPlayer() or ent:IsNPC() ) && ent:Health() < ent:GetMaxHealth() ) then
+	if ( IsValid( ent ) && self:Clip1() >= need && ( ent:IsPlayer() or ent:IsNPC() ) && ent:Health() < SWEP.MaxHealth ) then
 
 		self:TakePrimaryAmmo( need )
         ent:SetHealth(200)
@@ -102,9 +103,9 @@ function SWEP:SecondaryAttack()
 	local ent = self.Owner
 
 	local need = self.HealAmount
-	if ( IsValid( ent ) ) then need = math.min( ent:GetMaxHealth() - ent:Health(), self.HealAmount ) end
+	if ( IsValid( ent ) ) then need = math.min( SWEP.MaxHealth - ent:Health(), self.HealAmount ) end
 
-	if ( IsValid( ent ) && self:Clip1() >= need && ent:Health() < ent:GetMaxHealth() ) then
+	if ( IsValid( ent ) && self:Clip1() >= need && ent:Health() < SWEP.MaxHealth ) then
 
 		self:TakePrimaryAmmo( need )
 

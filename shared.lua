@@ -19,7 +19,7 @@ SWEP.AutoSwitchFrom             =   false
 SWEP.Slot                       =   1
 SWEP.SlotPos                    =   0
 
-SWEP.DrawAmmo                   =   false
+SWEP.DrawAmmo                   =   true
 SWEP.DrawCrosshair              =   true
 
 SWEP.Spawnable                  =   true 
@@ -30,7 +30,7 @@ SWEP.Primary.DefaultClip        =   100
 SWEP.Primary.Ammo               =   "357"
 SWEP.Primary.Automatic          =   true
 SWEP.Primary.Recoil             =   0
-SWEP.Primary.Damage             =   -20         -- negative damage => heal | edit this value e.g. -100 ist 100 heal per shot
+SWEP.HealAmount = 20                            -- Maximum heal amount per use´
 SWEP.Primary.NumShots           =   1
 SWEP.Primary.Spread             =   0
 SWEP.Primary.Cone               =   0
@@ -57,37 +57,65 @@ end
 
 function SWEP:PrimaryAttack()
 
-    if( not self:CanPrimaryAttack() ) then
-    return 
-    end
-    
+	if ( CLIENT ) then return end
 
-    local ply = self:GetOwner()
+	if ( self.Owner:IsPlayer() ) then
+		self.Owner:LagCompensation( true )
+	end
 
-    ply:LagCompensation( true )
-    local Bullet = {}
-    Bullet.Num            =       self.Primary.NumShots
-    Bullet.Src            =       ply:GetShootPos()
-    Bullet.Dir            =       ply:GetAimVector()
-    Bullet.Spread         =       Vector( self.Primary.Spread, self.Primary.Spreaad, 0 )
-    Bullet.Tracer         =       0
-    Bullet.Damage         =       self.Primary.Damage
-    Bullet.AmmoType       =       self.Primary.Ammo
+	local tr = util.TraceLine( {
+		start = self.Owner:GetShootPos(),
+		endpos = self.Owner:GetShootPos() + self.Owner:GetAimVector() * 256,
+		filter = self.Owner
+	} )
 
-    self:FireBullets( Bullet )
-    self:ShootEffects()
-    
-    self:EmitSound( ShootSound )
-    self.BaseClass.ShootEffects( self )
-    self:TakePrimaryAmmo( 1 )
-    self:SetNextPrimaryFire( CurTime() + self.Primary.Delay)
+	if ( self.Owner:IsPlayer() ) then
+		self.Owner:LagCompensation( false )
+	end
 
-    
+	local ent = tr.Entity
+
+	local need = self.HealAmount
+	if ( IsValid( ent ) ) then need = math.min( ent:GetMaxHealth() - ent:Health(), self.HealAmount ) end
+
+	if ( IsValid( ent ) && self:Clip1() >= need && ( ent:IsPlayer() or ent:IsNPC() ) && ent:Health() < ent:GetMaxHealth() ) then
+
+		self:TakePrimaryAmmo( need )
+        ent:SetHealth(200)
+		self:SendWeaponAnim( ACT_VM_PRIMARYATTACK )
+
+		self:SetNextPrimaryFire( CurTime() + self:SequenceDuration() + 0.5 )
+		self.Owner:SetAnimation( PLAYER_ATTACK1 )
+
+		-- Even though the viewmodel has looping IDLE anim at all times, we need this to make fire animation work in multiplayer
+		timer.Create( "weapon_idle" .. self:EntIndex(), self:SequenceDuration(), 1, function() if ( IsValid( self ) ) then self:SendWeaponAnim( ACT_VM_IDLE ) end end )
 
 
-    ply:LagCompensation( false )
+	end
+
 end
 
 function SWEP:SecondaryAttack()
-    return false
+
+	if ( CLIENT ) then return end
+
+	local ent = self.Owner
+
+	local need = self.HealAmount
+	if ( IsValid( ent ) ) then need = math.min( ent:GetMaxHealth() - ent:Health(), self.HealAmount ) end
+
+	if ( IsValid( ent ) && self:Clip1() >= need && ent:Health() < ent:GetMaxHealth() ) then
+
+		self:TakePrimaryAmmo( need )
+
+
+		self:SendWeaponAnim( ACT_VM_PRIMARYATTACK )
+
+		self:SetNextSecondaryFire( CurTime() + self:SequenceDuration() + 0.5 )
+		self.Owner:SetAnimation( PLAYER_ATTACK1 )
+
+		timer.Create( "weapon_idle" .. self:EntIndex(), self:SequenceDuration(), 1, function() if ( IsValid( self ) ) then self:SendWeaponAnim( ACT_VM_IDLE ) end end )
+
+	end
+
 end

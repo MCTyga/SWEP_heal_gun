@@ -82,7 +82,7 @@ function SWEP:PrimaryAttack()
 	if ( IsValid( ent ) && self:Clip1() >= need && ( ent:IsPlayer() or ent:IsNPC() ) && ent:Health() < SWEP.MaxHealth ) then
 
 		self:TakePrimaryAmmo( need )
-        ent:SetHealth(200)
+        ent:SetHealth( ent:Health() + SWEP.HealAmount )
 		self:SendWeaponAnim( ACT_VM_PRIMARYATTACK )
 
 		self:SetNextPrimaryFire( CurTime() + self:SequenceDuration() + 0.5 )
